@@ -526,6 +526,41 @@ body[data-theme="stage"] .portrait-ring {
     scroll-margin-top: 72px;
 }
 
+.lab-section {
+    padding: 56px 24px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), transparent 40%);
+}
+
+.lab-inner {
+    width: min(980px, 100%);
+    margin: 0 auto;
+    display: flex;
+    gap: 22px;
+    align-items: center;
+    padding: 22px;
+    border-radius: 20px;
+    border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+    background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.02));
+}
+
+.lab-icon {
+    width: 84px;
+    height: 84px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), color-mix(in srgb, var(--surface) 8%, transparent));
+    flex-shrink: 0;
+}
+
+.lab-icon svg { width: 44px; height: 44px; color: var(--accent); filter: drop-shadow(0 6px 18px rgba(0,0,0,0.12)); }
+
+.lab-copy .eyebrow { margin: 0 0 8px; color: var(--muted); font-weight:700 }
+.lab-copy h2 { margin: 0 0 8px; font-size: 22px; }
+.lab-copy p { margin: 0 0 8px; color: var(--muted); }
+.lab-meta span { color: var(--muted); font-weight:700 }
+
 .section-light {
     background: var(--surface-soft);
 }
