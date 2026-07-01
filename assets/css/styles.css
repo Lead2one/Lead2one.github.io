@@ -226,9 +226,24 @@ button {
 
 .eyebrow {
     margin: 0 0 14px;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    width: fit-content;
     color: var(--accent);
     font-size: 17px;
     font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.eyebrow:hover,
+.eyebrow:focus-visible {
+    background-color: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: color-mix(in srgb, var(--accent) 70%, black 30%);
+    outline: none;
 }
 
 .hero h1 {
