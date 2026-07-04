@@ -209,6 +209,199 @@ themeToggle?.addEventListener("click", () => {
     applyTheme();
 });
 
+/* Background particles canvas */
+let bgCanvas = null;
+let bgCtx = null;
+let particles = [];
+let particleAnimId = null;
+let time = 0;
+let sparkleTimer = 0;
+
+function createParticlesCanvas() {
+    if (bgCanvas) return;
+    bgCanvas = document.getElementById("bg-canvas");
+    if (!bgCanvas) return;
+    bgCtx = bgCanvas.getContext("2d");
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+}
+
+function resizeCanvas() {
+    if (!bgCanvas) return;
+    bgCanvas.width = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+    bgCanvas.height = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+}
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+function initParticles(count = 40) {
+    particles = [];
+    const w = bgCanvas.width;
+    const h = bgCanvas.height;
+    const themeIsStage = document.body.dataset.theme === "stage";
+    const baseColor = getComputedStyle(document.documentElement).getPropertyValue(themeIsStage ? "--accent" : "--accent") || "#0071e3";
+    for (let i = 0; i < count; i++) {
+        if (themeIsStage) {
+            particles.push({
+                x: rand(0, w),
+                y: rand(0, h),
+                r: rand(10, 40),
+                vx: rand(-0.12, 0.12),
+                vy: rand(-0.05, 0.05),
+                alpha: rand(0.08, 0.48),
+                hueShift: rand(-30, 30)
+            });
+        } else {
+            // brighter / more prominent particles for light theme
+            particles.push({
+                x: rand(0, w),
+                y: rand(0, h),
+                r: rand(14, 60),
+                vx: rand(-0.16, 0.16),
+                vy: rand(-0.08, 0.08),
+                alpha: rand(0.22, 0.9),
+                hueShift: rand(-20, 20)
+            });
+        }
+    }
+}
+
+function drawParticles() {
+    if (!bgCtx) return;
+    const w = bgCanvas.width;
+    const h = bgCanvas.height;
+    bgCtx.clearRect(0, 0, w, h);
+        const themeIsStage = document.body.dataset.theme === "stage";
+    drawGradientBand(w, h, time, themeIsStage);
+    for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < -100) p.x = w + 100;
+        if (p.x > w + 100) p.x = -100;
+        if (p.y < -100) p.y = h + 100;
+        if (p.y > h + 100) p.y = -100;
+
+        const grd = bgCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+        if (themeIsStage) {
+            grd.addColorStop(0, `rgba(255,121,198,${p.alpha})`);
+            grd.addColorStop(0.4, `rgba(176,127,255,${p.alpha * 0.6})`);
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+        } else {
+            grd.addColorStop(0, `rgba(0,113,227,${p.alpha})`);
+            grd.addColorStop(0.4, `rgba(99,179,255,${p.alpha * 0.5})`);
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+        }
+
+        // use brighter composite in light theme for more vivid colors
+        bgCtx.globalCompositeOperation = themeIsStage ? 'screen' : 'lighter';
+        bgCtx.fillStyle = grd;
+        bgCtx.beginPath();
+        bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        bgCtx.fill();
+    }
+
+    // draw connecting lines for a subtle network effect
+    drawConnections(bgCtx, particles, themeIsStage);
+
+    // occasional tiny sparkles
+    sparkleTimer += 1;
+    if (sparkleTimer > 8) {
+        drawSparkles(bgCtx, w, h, themeIsStage);
+        sparkleTimer = 0;
+    }
+}
+
+function drawGradientBand(w, h, t, themeIsStage) {
+    // slow-moving, very soft band to add depth
+    const grd = bgCtx.createLinearGradient(0, h * (0.2 + Math.sin(t * 0.0006) * 0.06), w, h * (0.8 + Math.cos(t * 0.0005) * 0.06));
+    if (themeIsStage) {
+        grd.addColorStop(0, 'rgba(18,9,40,0.0)');
+        grd.addColorStop(0.28, 'rgba(176,127,255,0.12)');
+        grd.addColorStop(0.6, 'rgba(255,121,198,0.10)');
+        grd.addColorStop(1, 'rgba(10,4,20,0.0)');
+    } else {
+        // stronger band for light theme
+        grd.addColorStop(0, 'rgba(255,255,255,0.0)');
+        grd.addColorStop(0.18, 'rgba(0,113,227,0.28)');
+        grd.addColorStop(0.6, 'rgba(99,179,255,0.18)');
+        grd.addColorStop(1, 'rgba(255,255,255,0.0)');
+    }
+    bgCtx.save();
+    bgCtx.globalCompositeOperation = 'overlay';
+    bgCtx.fillStyle = grd;
+    bgCtx.fillRect(-50, -50, w + 100, h + 100);
+    bgCtx.restore();
+}
+
+function drawConnections(ctx, nodes, themeIsStage) {
+    const maxDist = 140;
+    ctx.save();
+    ctx.lineWidth = 0.9;
+    for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+            const b = nodes[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const d = Math.sqrt(dx * dx + dy * dy);
+            if (d < maxDist) {
+                const alpha = 1 - d / maxDist;
+                if (themeIsStage) ctx.strokeStyle = `rgba(255,121,198,${0.12 * alpha})`;
+                else ctx.strokeStyle = `rgba(0,113,227,${0.36 * alpha})`;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+            }
+        }
+    }
+    ctx.restore();
+}
+
+function drawSparkles(ctx, w, h, themeIsStage) {
+    let count = Math.max(3, Math.floor((w * h) / 800000));
+    if (!themeIsStage) count = Math.max(count, Math.floor(count * 2.2));
+    ctx.save();
+    for (let i = 0; i < count; i++) {
+        const x = rand(0, w);
+        const y = rand(0, h);
+        const r = rand(2.6, 6.2);
+        ctx.beginPath();
+        if (themeIsStage) ctx.fillStyle = `rgba(255,217,251,${rand(0.12, 0.28)})`;
+        else ctx.fillStyle = `rgba(150,200,255,${rand(0.28, 0.64)})`;
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+function animateParticles() {
+    time += 16;
+    drawParticles();
+    particleAnimId = requestAnimationFrame(animateParticles);
+}
+
+function startBgParticles() {
+    createParticlesCanvas();
+    if (!bgCanvas) return;
+    cancelAnimationFrame(particleAnimId);
+    const areaFactor = Math.floor((bgCanvas.width * bgCanvas.height) / (1000 * 1000));
+    const target = Math.min(50, Math.max(30, areaFactor + 30));
+    initParticles(target);
+    animateParticles();
+}
+
+function stopBgParticles() {
+    if (particleAnimId) cancelAnimationFrame(particleAnimId);
+}
+
+function refreshParticlesForTheme() {
+    if (!bgCanvas) return;
+    // soften canvas opacity per theme and re-init
+    try { bgCanvas.style.opacity = document.body.dataset.theme === 'stage' ? '0.34' : '0.22'; } catch (e) {}
+    initParticles(particles.length || 40);
+}
+
 langToggle?.addEventListener("click", () => {
     currentLang = currentLang === "zh" ? "en" : "zh";
     applyLanguage();
@@ -237,4 +430,11 @@ if ("IntersectionObserver" in window) {
 applyLanguage();
 applyTheme();
 updateHeader();
+// init background particles
+createParticlesCanvas();
+startBgParticles();
+// when theme toggles, refresh particle colors and intensity
+themeToggle?.addEventListener("click", () => {
+    refreshParticlesForTheme();
+});
 window.addEventListener("scroll", updateHeader, { passive: true });
