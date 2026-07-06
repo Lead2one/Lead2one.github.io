@@ -43,6 +43,17 @@ const translations = {
         projectThreeMeta: "C++ · QT",
         projectThreeTitle: "Ash Impact 横板射击游戏",
         projectThreeText: "独立开发角色操控、碰撞检测等机制，入选校级展示活动。",
+        moreProjectsClosed: "展开更多项目",
+        moreProjectsOpen: "收起更多项目",
+        projectFourMeta: "HTML/CSS · Interaction Design",
+        projectFourTitle: "终末星界秘所",
+        projectFourText: "面向兴趣内容的独立站点，探索轻量交互、视觉表达与内容组织。",
+        projectFiveMeta: "GNN · Bioinformatics",
+        projectFiveTitle: "药物-靶标预测研究",
+        projectFiveText: "围绕图神经网络、表征融合与可解释性方法，参与实验室科研方向建设。",
+        projectSixMeta: "Engineering · Prototypes",
+        projectSixTitle: "工程原型合集",
+        projectSixText: "沉淀算法练习、工程实验与智能应用原型，持续补全可复用的开发经验。",
         learningEyebrow: "Learning",
         learningTitle: "最近在学什么",
         learningOneTitle: "大模型工程与智能交互",
@@ -97,6 +108,17 @@ const translations = {
         projectThreeMeta: "C++ · QT",
         projectThreeTitle: "Ash Impact Side-scrolling Shooter",
         projectThreeText: "Independently developed character control and collision detection systems; selected for a university showcase.",
+        moreProjectsClosed: "Show more projects",
+        moreProjectsOpen: "Show fewer projects",
+        projectFourMeta: "HTML/CSS · Interaction Design",
+        projectFourTitle: "Endfield Secret Base",
+        projectFourText: "An independent interest site exploring lightweight interaction, visual expression, and content structure.",
+        projectFiveMeta: "GNN · Bioinformatics",
+        projectFiveTitle: "Drug-target Prediction Research",
+        projectFiveText: "Lab research around graph neural networks, representation fusion, and explainable prediction methods.",
+        projectSixMeta: "Engineering · Prototypes",
+        projectSixTitle: "Engineering Prototype Set",
+        projectSixText: "A growing collection of algorithm practice, engineering experiments, and intelligent application prototypes.",
         labTitle: "Lab Research",
         labText: "Our lab focuses on graph neural network-based drug–target interaction prediction. Research spans graph representation learning for molecules and proteins, embedding fusion, cross-modal alignment, model explainability, and scalable methods for accelerated high-throughput screening.",
         learningEyebrow: "Learning",
@@ -120,6 +142,8 @@ const toast = document.querySelector("[data-toast]");
 const themeToggle = document.querySelector("[data-theme-toggle]");
 const langToggle = document.querySelector("[data-lang-toggle]");
 const copyEmailButtons = document.querySelectorAll("[data-copy-email]");
+const projectMore = document.querySelector("[data-project-more]");
+const projectToggle = document.querySelector("[data-project-toggle]");
 const revealTargets = document.querySelectorAll(".reveal");
 
 let currentLang = localStorage.getItem("lang") || "zh";
@@ -127,6 +151,14 @@ let currentTheme = localStorage.getItem("theme") || "apple";
 let toastTimer = null;
 
 const getText = (key) => translations[currentLang][key] || translations.zh[key] || "";
+
+const syncProjectToggle = () => {
+    if (!projectMore || !projectToggle) return;
+    const isOpen = projectMore.classList.contains("is-open");
+    const label = projectToggle.querySelector("span");
+    if (label) label.textContent = getText(isOpen ? "moreProjectsOpen" : "moreProjectsClosed");
+    projectToggle.setAttribute("aria-expanded", String(isOpen));
+};
 
 const showToast = (message) => {
     if (!toast) return;
@@ -188,6 +220,7 @@ const applyLanguage = () => {
         langToggle.setAttribute("aria-label", currentLang === "zh" ? "Switch to English" : "切换到中文");
     }
 
+    syncProjectToggle();
     localStorage.setItem("lang", currentLang);
 };
 
@@ -410,6 +443,11 @@ langToggle?.addEventListener("click", () => {
 
 copyEmailButtons.forEach((button) => {
     button.addEventListener("click", copyEmail);
+});
+
+projectToggle?.addEventListener("click", () => {
+    projectMore?.classList.toggle("is-open");
+    syncProjectToggle();
 });
 
 if ("IntersectionObserver" in window) {
