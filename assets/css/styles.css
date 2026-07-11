@@ -910,6 +910,10 @@ body:not([data-theme="stage"]) .section-dark .feature-card {
     background: linear-gradient(145deg, #1f2937, #6b7280);
 }
 
+.project-card-amber {
+    background: linear-gradient(145deg, #a84f08, #f6b84a);
+}
+
 .project-more {
     width: min(980px, 100%);
     margin: 18px auto 0;
@@ -1010,6 +1014,10 @@ body[data-theme="stage"] .project-card-rose {
 
 body[data-theme="stage"] .project-card-ink {
     background: linear-gradient(145deg, #111827, #4b5563);
+}
+
+body[data-theme="stage"] .project-card-amber {
+    background: linear-gradient(145deg, #8f3e16, #f2a65a);
 }
 
 .contact-section {
